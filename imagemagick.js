@@ -267,6 +267,8 @@ var resizeCall = function(t, callback) {
   return proc;
 }
 
+exports.resizeCall = resizeCall;
+
 exports.resize = function(options, callback) {
   var t = exports.resizeArgs(options);
   return resizeCall(t, callback)
