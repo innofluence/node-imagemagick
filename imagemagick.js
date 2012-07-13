@@ -370,6 +370,7 @@ exports.resizeArgs = function(options) {
     if (opt.height === 0) args.push(String(opt.width));
     else if (opt.width === 0) args.push('x'+String(opt.height));
     else args.push(String(opt.width)+'x'+String(opt.height));
+    args.push('>');
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
@@ -393,5 +394,6 @@ exports.resizeArgs = function(options) {
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
 
+console.log(args);
   return {opt:opt, args:args};
 }
