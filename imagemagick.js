@@ -367,10 +367,9 @@ exports.resizeArgs = function(options) {
   }
   if (opt.width || opt.height) {
     args.push('-resize');
-    if (opt.height === 0) args.push(String(opt.width));
-    else if (opt.width === 0) args.push('x'+String(opt.height));
-    else args.push(String(opt.width)+'x'+String(opt.height));
-    args.push('>');
+    if (opt.height === 0) args.push(String(opt.width)+'>');
+    else if (opt.width === 0) args.push('x'+String(opt.height)+'>');
+    else args.push(String(opt.width)+'x'+String(opt.height)+'>');
   }
   opt.format = opt.format.toLowerCase();
   var isJPEG = (opt.format === 'jpg' || opt.format === 'jpeg');
