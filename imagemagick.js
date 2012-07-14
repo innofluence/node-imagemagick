@@ -393,6 +393,5 @@ exports.resizeArgs = function(options) {
     args = args.concat(opt.customArgs);
   args.push(opt.dstPath);
 
-console.log(args);
   return {opt:opt, args:args};
 }
