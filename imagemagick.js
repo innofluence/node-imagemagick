@@ -94,41 +94,124 @@ function exec2(file, args /*, options, callback */) {
   });
 
   return child;
-};
+}
 
+function isString(value) {
+  return Object.prototype.toString.call(value) === '[object String]';
+}
 
+// Parser graceiously borrowed from https://github.com/dandean/imagemagick-identify-parser
 function parseIdentify(input) {
-  var lines = input.split("\n"),
-      prop = {},
-      props = [prop],
-      prevIndent = 0,
-      indents = [indent],
-      currentLine, comps, indent;
+  var camelCase = false, lowerCase = true;
+  var data = {
+    rawInput: input
+  };
+  input = input.trim();
 
-  lines.shift(); //drop first line (Image: name.jpg)
+  // If input is empty, no need to bother parsing it.
+  if (input === '') return;
 
-  for (i in lines) {
-    currentLine = lines[i];
-    if (currentLine.length > 0) {
-      indent = currentLine.search(/\S/);
-      comps = currentLine.split(': ');
-      if (indent > prevIndent) indents.push(indent);
-      while (indent < prevIndent) {
-        indents.pop();
-        prop = props.pop();
-        prevIndent = indents[indents.length - 1];
+  // Each new line should start with *at least* two spaces. This fixes 1st line.
+  input = ('  ' + input).split("\n");
+
+  var stack = [data];
+  var lastDepth = 1;
+  var lastKey;
+
+  var t = this;
+
+  input.forEach(function(line, i) {
+    var index = line.indexOf(':');
+
+    // The line *must* contain a colon to be processed. This currently skips the
+    // second line of the "Profiles" property. In the sample output, this line
+    // contains simply "Display".
+    if (index > -1) {
+
+      var nextCharacter = line[index+1];
+
+      // nextCharacter is undefined when ':' is the last char on the line.
+      if (nextCharacter && nextCharacter.match(/\w/)) {
+
+        // Start counting from the first ':'.
+        for (var j=index+1; j<line.length; j++) {
+          if (line[j] === ':') {
+            // A new separator was found, use it's index to split the line on.
+            index = j;
+            break;
+          }
+        }
       }
-      if (comps.length < 2) {
-        props.push(prop);
-        prop = prop[currentLine.split(':')[0].trim().toLowerCase()] = {};
-      } else {
-        prop[comps[0].trim().toLowerCase()] = comps[1].trim()
+
+      var depth = line.match(/^ +/)[0].length / 2;
+      var key = line.slice(0, index).trim();
+      var value = line.slice(index + 1).trim() || {};
+
+      if (lowerCase) {
+        key = key.toLowerCase();
       }
-      prevIndent = indent;
+
+      if (camelCase) {
+        // Replace all non-word and underscore characters with a non-sequential space.
+        key = key.replace(/[\W_]/g, ' ').replace(/\s+/g, ' ').toLowerCase();
+        // Replace initial char in each work with an uppercase version.
+        key = key.replace(/ \w/g, function(x) { return x.trim().toUpperCase(); });
+      }
+
+      if (isString(value)) {
+        if (value.match(/^\-?\d+$/)) {
+          // Convert int-looking values to actual numbers.
+          value = parseInt(value, 10);
+
+        } else if (value.match(/^\-?\d+?\.\d+$/)) {
+          // Convert float-looking values to actual numbers.
+          value = parseFloat(value, 10);
+
+        } else if (value.match(/^true$/i)) {
+          // Convert boolean TRUE looking values to `true`.
+          value = true;
+
+        } else if (value.match(/^false$/i)) {
+          // Convert boolean FALSE looking values to `false`.
+          value = false;
+
+        } else if (value.match(/^undefined$/i)) {
+          // Convert boolean FALSE looking values to `false`.
+          return;
+        }
+      }
+
+      if (depth === lastDepth) {
+        // Add the key/value pair to the last object in the stack
+        stack[stack.length-1][key] = value;
+
+        // Note this key as the last key, which will become the parent key if
+        // the next object is a child.
+        lastKey = key;
+
+      } else if (depth === lastDepth + 1) {
+        // Add the last key (which should be an empty object) to the end of
+        // the object stack. This allows us to match stack depth to
+        // indentation depth.
+        stack.push(stack[stack.length-1][lastKey]);
+        stack[stack.length-1][key] = value;
+        lastDepth++;
+        lastKey = key;
+
+      } else if (depth < lastDepth) {
+        // Remove items from the end of the stack so that we add this new
+        // key/value pair to the correct parent object.
+        stack = stack.slice(0, depth);
+        stack[stack.length-1][key] = value;
+        lastDepth = depth;
+        lastKey = key;
+      }
+
     }
-  }
-  return props[0];
-};
+  });
+
+  return data;
+}
 
 exports.identify = function(pathOrArgs, callback) {
   var isCustom = Array.isArray(pathOrArgs),
@@ -152,13 +235,14 @@ exports.identify = function(pathOrArgs, callback) {
         result = stdout;
       } else {
         result = parseIdentify(stdout);
+        console.log(result);
         geometry = result['geometry'].split(/x/);
 
-        result.format = result.format.match(/\S*/)[0]
-        result.width = parseInt(geometry[0]);
-        result.height = parseInt(geometry[1]);
-        result.depth = parseInt(result.depth);
-        if (result.quality !== undefined) result.quality = parseInt(result.quality) / 100;
+        result.format = result.format.match(/\S*/)[0];
+        result.width = parseInt(geometry[0], 10);
+        result.height = parseInt(geometry[1], 10);
+        result.depth = parseInt(result.depth, 10);
+        if (result.quality !== undefined) result.quality = parseInt(result.quality, 10) / 100;
       }
     }
     callback(err, result);
