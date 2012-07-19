@@ -235,7 +235,7 @@ exports.identify = function(pathOrArgs, callback) {
         result = stdout;
       } else {
         result = parseIdentify(stdout);
-        console.log(result);
+        delete result.rawInput;
         geometry = result['geometry'].split(/x/);
 
         result.format = result.format.match(/\S*/)[0];
