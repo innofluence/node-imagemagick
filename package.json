@@ -6,9 +6,12 @@
   "licenses": [{
     "type": "MIT"
   }],
+  "devDependencies": {
+    "buster": ">=0.0.1"
+  }
   "repository": {
     "type": "git",
-    "url": "http://github.com/rsms/node-imagemagick.git"
+    "url": "http://github.com/innofluence/node-imagemagick.git"
   },
   "engine": [ "node >=0.1.90" ],
   "main": "imagemagick"
