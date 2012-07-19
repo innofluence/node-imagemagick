@@ -1,14 +1,14 @@
 {
   "name": "imagemagick",
   "description": "A wrapper around the imagemagick cli",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "author": "Rasmus Andersson",
   "licenses": [{
     "type": "MIT"
   }],
   "devDependencies": {
     "buster": ">=0.0.1"
-  }
+  },
   "repository": {
     "type": "git",
     "url": "http://github.com/innofluence/node-imagemagick.git"
