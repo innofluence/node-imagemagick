@@ -25,9 +25,9 @@ describe('Testing files: ', function() {
   filesArray.forEach(function(file) {
     it("should not return undefined on identifiy", function (next) {
       imagemagick.identify(file, function (err, features) {
-        expect(features).not.toEqual(undefined);    
+        expect(features).not.toEqual(undefined);
         next();
       });
-    });    
+    });
   });
 });

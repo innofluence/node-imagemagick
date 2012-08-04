@@ -338,6 +338,7 @@ exports.convert = function(args, timeout, callback) {
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
+  console.log(t);
   var proc = exports.convert(t.args, t.opt.timeout, callback);
   if (t.opt.srcPath.match(/-$/)) {
     if ('string' === typeof t.opt.srcData) {
@@ -461,7 +462,7 @@ exports.resizeArgs = function(options) {
     args.push('-interlace');
     args.push('plane');
   }
-  if (isJPEG || opt.format === 'png') {
+  if ((isJPEG || opt.format === 'png') && opt.quality) {
     args.push('-quality');
     args.push(Math.round(opt.quality * 100.0).toString());
   }
