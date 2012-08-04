@@ -338,7 +338,6 @@ exports.convert = function(args, timeout, callback) {
 exports.convert.path = 'convert';
 
 var resizeCall = function(t, callback) {
-  console.log(t);
   var proc = exports.convert(t.args, t.opt.timeout, callback);
   if (t.opt.srcPath.match(/-$/)) {
     if ('string' === typeof t.opt.srcData) {
